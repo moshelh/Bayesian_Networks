@@ -1,7 +1,9 @@
 
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -152,7 +154,8 @@ public class Graph {
         return cur;
     }
 
-    public static void startBayes(String row){
+    public static String startBayes(String row){
+        String string;
         String start;
         String end;
         ArrayList<String> shade=new ArrayList<>();
@@ -172,7 +175,9 @@ public class Graph {
                 shade.add(q[1].substring(0,index));
             }
         }
-        System.out.println(bayesBall(start,end,shade));
+        string=bayesBall(start,end,shade);
+        string=string+"\n";
+        return string;
     }
 
     public static String bayesBall (String start , String end,ArrayList<String> shade){
@@ -245,7 +250,8 @@ public class Graph {
         return "yes";
     }
 
-    public static void startVariableElimination(String row){
+    public static String startVariableElimination(String row){
+        String string;
         ArrayList<String[]> evidences = new ArrayList<>();
         ArrayList<String> hiddenVariables = new ArrayList<>();
         int tempIndex=row.indexOf("(");
@@ -280,8 +286,9 @@ public class Graph {
         }
         multOperation=0;
         plusOperation=0;
-        System.out.println(variableElimination(queries,evidences,hiddenVariables));
-
+        string=variableElimination(queries,evidences,hiddenVariables);
+        string=string+"\n";
+        return string;
     }
 
     public static String variableElimination(String[] queries,ArrayList<String[]> evidence,ArrayList<String> hiddenVariables){
@@ -408,18 +415,36 @@ public class Graph {
 
     }
 
-    public static void queries(){
+    public static void queries() throws IOException {
+        String ans = "";
+        Writer writer = null;
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream("output.txt"), StandardCharsets.UTF_8));
+
+        } catch (IOException ex) {
+            // Report
+        }
         for (String[] strings : text) {
             if (strings[0].contains("Queries")) {
                 for (int j = 1; j < strings.length; j++) {
                     if (strings[j].charAt(0) == 'P') {
-                        startVariableElimination(strings[j]);
+                       ans=startVariableElimination(strings[j]);
+                        assert writer != null;
+                        writer.write(ans);
                     } else {
-                        startBayes(strings[j]);
+                       ans=startBayes(strings[j]);
+                        assert writer != null;
+                        writer.write(ans);
                     }
                 }
             }
         }
+
+        try {
+            assert writer != null;
+            writer.close();} catch (Exception ex) {/*ignore*/}
+
     }
 
     private static CPT eliminate(CPT last ,String hidden) {
